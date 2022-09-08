@@ -143,6 +143,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 public class SecurityConfig {}
 ```
 
-원래는 WebSecurityConfigurerAdapter 를 상속받고 오버라이드를 통해서 설정을 조정했는데 deprecate 되고 @EnableWebSecurity 사용
+원래는 WebSecurityConfigurerAdapter 를 상속받고 오버라이드를 통해서 설정을 조정했는데 deprecate 되고 @EnableWebSecurity 사용.
 
-// TODO -p7
+| 키워드                  | 내용                            |
+|:---------------------|:------------------------------|
+| SecurityConfig.class | 앞으로 모든 시큐리티 관련 설정은 여기다 추가할 것임 |
+
+<br/>
+
