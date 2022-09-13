@@ -151,3 +151,128 @@ public class SecurityConfig {}
 
 <br/>
 
+### 10.1.2 확인을 위한 SampleController
+
+<br/>
+
+- SampleController  
+
+```java
+import lombok.extern.log4j.Log4j2;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@Log4j2
+@RequestMapping("/sample/")
+public class SampleController {
+
+    @GetMapping("/all")
+    public void exAll() {
+        log.info("exAll........");
+    }
+
+    @GetMapping("/member")
+    public void exMember() {
+        log.info("exMember.......");
+    }
+
+    @GetMapping("/admin")
+    public void exAdmin() {
+        log.info("exAdmin.......");
+    }
+
+}
+```
+
+SampleController 에는 현재 사용자의 권한에 따라 접근할 수 있는 경로를 지정할 것임
+
+> - 로그인을 하지 않은 사용자도 접근할 수 있는 '/sample/all'
+> - 로그인한 사용자만이 접근할 수 있는 '/sample/member'
+> - 관리자 (admin) 권한이 있는 사용자만이 접근할 수 있는 '/sample/admin'
+
+
+<br/>
+
+- [테스트용 파일 추가 ]()
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>admin</title>
+</head>
+<body>
+	<h2>admin</h2>
+</body>
+</html>
+```
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>all</title>
+</head>
+<body>
+
+	<h2>all</h2>
+
+</body>
+</html>
+```
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>member</title>
+</head>
+<body>
+
+	<h2>member</h2>
+
+</body>
+</html>
+```
+
+---
+
+<br/>
+
+### 10.1.3 스프링 시큐리티 용어와 흐름
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
