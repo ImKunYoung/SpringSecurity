@@ -1,5 +1,5 @@
 
-## SpringBoot 와 Spring Security 연동
+# SpringBoot 와 Spring Security 연동
 
 ✔️ 학습할 내용
 - 스프링 시큐리티에서 제공하는 로그인 처리 방식의 이해
@@ -125,7 +125,7 @@ Using generated security password: 9a7fb52e-4c3a-4a73-82f3-7d15067e5cca
 
 <br/>
 
-### 10.1.1 시큐리티 설정 클래스 설정
+## ⭐  10.1.1 시큐리티 설정 클래스 설정
 
 스프링 부트는 자동 설정 기능이 있어 별도의 설정 없이도 연동 처리는 위와 같이 가능하지만 스프링 시큐리티를 이용하는 모든 프로젝트는 프로젝트에 맞는 
 설정을 추가하는 것이 일반적임. 따라서 별도의 시큐리티 설정 클래스를 만들어보자
@@ -151,7 +151,7 @@ public class SecurityConfig {}
 
 <br/>
 
-### 10.1.2 확인을 위한 SampleController
+## ⭐ 10.1.2 확인을 위한 SampleController
 
 <br/>
 
@@ -243,8 +243,10 @@ SampleController 에는 현재 사용자의 권한에 따라 접근할 수 있�
 ---
 
 <br/>
+<br/>
+<br/>
 
-### 10.1.3 스프링 시큐리티 용어와 흐름
+## ⭐  10.1.3 스프링 시큐리티 용어와 흐름
 
 프로젝트를 실행하고 '/sample/all' 과 같은 경로를 호출하면 시큐리티로 인해 로그인 화면이 보이는 것을 확인할 수 있음.
 이를 서버 로그를 중심으로 살펴보자
@@ -276,7 +278,7 @@ SampleController 에는 현재 사용자의 권한에 따라 접근할 수 있�
 
 <br/>
 
-- 필터와 필터 체이닝
+### ✔ 필터와 필터 체이닝
 
 스프링 시큐리티에서 필터 (Filter)는 서블릿이나 JSP 에서 사용하는 필터와 같은 개념이지만, 스프링 시큐리티에서는 스프링의 빈과 연동할 수 있는 구조로 설계되어 있다.
 일반적인 필터는 스프링의 빈을 사용할 수 없기 때문에 별도의 클래스를 상속받는 형태가 많다.
@@ -289,7 +291,7 @@ SampleController 에는 현재 사용자의 권한에 따라 접근할 수 있�
 
 <br/>
 
-- 인증을 위한 AuthenticationManager
+### ✔  인증을 위한 AuthenticationManager
 
 필터의 핵심적인 동작은 AuthenticationManager 를 통해서 인증 (Authentication) 이라는 타입의 객체로 작업을 하게 된다.
 AuthenticationManager가 가진 인증 처리 메서드는 파라미터도 Authentication 타입으로 받고 리턴 타입 또한 Authentication 이다.
@@ -319,22 +321,33 @@ AuthenticationManager 는 이러한 처리를 AuthenticationProvider 로 처리�
 ![](readmeFile/img_6.png)
 
 
+<br/>
+<br/>
 
+### ✔ 인가 (Authorization)와 권한/ 접근 제한
+인증처리 단계 이후 사용자 권한을 확인하여 접근 제한을 둠. (Access-Control)
+<br/>
 
+- 📋 url 아무거나 입력
 
+![](readmeFile/img_5.png)
 
+- 📋 스프링 시큐리티에서 인증/인가가 필요하다고 판단. 사용자가 인증하도록 로그인 화면으로 redirect
 
+![](readmeFile/img_7.png)
 
+- 📋 임시 계정, 비번 입력
 
+![](readmeFile/img_8.png)
 
+- 📋 정보가 전달되면 AuthenticationManager가 적절한 AuthenticationProvider를 찾아서 인증 시도
 
+![](readmeFile/img_9.png)
 
+> AuthenticationProvider의 실제 동작은 UserDetailService를 구현한 객체로 처리
 
-
-
-
-
-
+<br/>
+<br/>
 
 
 
