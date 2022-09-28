@@ -125,7 +125,7 @@ Using generated security password: 9a7fb52e-4c3a-4a73-82f3-7d15067e5cca
 
 <br/>
 
-## ⭐  10.1.1 시큐리티 설정 클래스 설정
+## ⭐   시큐리티 설정 클래스 설정
 
 스프링 부트는 자동 설정 기능이 있어 별도의 설정 없이도 연동 처리는 위와 같이 가능하지만 스프링 시큐리티를 이용하는 모든 프로젝트는 프로젝트에 맞는 
 설정을 추가하는 것이 일반적임. 따라서 별도의 시큐리티 설정 클래스를 만들어보자
@@ -151,7 +151,7 @@ public class SecurityConfig {}
 
 <br/>
 
-## ⭐ 10.1.2 확인을 위한 SampleController
+## ⭐  확인을 위한 SampleController
 
 <br/>
 
@@ -246,7 +246,7 @@ SampleController 에는 현재 사용자의 권한에 따라 접근할 수 있�
 <br/>
 <br/>
 
-## ⭐  10.1.3 스프링 시큐리티 용어와 흐름
+## ⭐  스프링 시큐리티 용어와 흐름
 
 프로젝트를 실행하고 '/sample/all' 과 같은 경로를 호출하면 시큐리티로 인해 로그인 화면이 보이는 것을 확인할 수 있음.
 이를 서버 로그를 중심으로 살펴보자
@@ -349,9 +349,89 @@ AuthenticationManager 는 이러한 처리를 AuthenticationProvider 로 처리�
 <br/>
 <br/>
 
+### ✔ 스프링 시큐리티 커스터마이징
 
+#### 📋 PasswordEncoder
+패스워드를 인코딩하는 객체 (암호화)임. 스프링 시큐리티는 여러 종류의 PasswordEncoder를 제공하고 있으며 그 중 가장 많이 사용하는 것은 BCryptPasswordEncoder라는 클래스이다.
 
+> - BCryptPasswordEncoder
+> 'bcrypt'라는 해시 함수를 이용해 패스워드를 암호화함. 암호화된 패스워드는 복호화가 불가능하고 매번 암호화된 값도 다르게 됨.
+> 대신 특정한 문자열이 암호화된 결과인지만을 확인할 수 있고 원본의 내용을 볼 수 없으므로 최근에 많이 사용됨. SecurityConfig는 @Bean을 통해 BCryptPasswordEncoder를 지정
 
+<br/>
+
+##### ✏ SecurityConfig
+```java
+package com.example.springsecurity.config;
+
+import lombok.extern.log4j.Log4j2;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+@Configuration
+@Log4j2
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+}
+```
+
+<br/>
+
+#### 📋 PasswordEncoder 테스트
+
+```java
+package com.example.springsecurity.security;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+@SpringBootTest
+public class PasswordTests {
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Test
+    public void testEncode() {
+
+        String password = "1111";
+
+        String enPw = passwordEncoder.encode(password);
+
+        System.out.println("enPW: "+enPw);
+
+        boolean matchResult = passwordEncoder.matches(password, enPw);
+
+        System.out.println("matchResult: "+matchResult);
+
+    }
+}
+```
+
+<br/>
+
+#### 📋 PasswordEncoder 테스트 결과
+
+```shell
+# first 테스트 결과
+enPW: $2a$10$PHKK0aBGdOWborx8QJfJd.96.OfvKL47wUOuoFpuK2sr0/wzYfgw2
+matchResult: true
+
+# second 테스트 결과
+enPW: $2a$10$pvtnrZLWPHqGZ/7xF5FxEO29x.UgF6lV21L16NtVfxuUtQzMQG9Nu
+matchResult: true
+```
 
 
 
