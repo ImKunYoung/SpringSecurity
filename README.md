@@ -486,9 +486,65 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 ![](readmeFile/img_12.png)
 
 
+<br/>
+<br/>
 
+### ✔ 인가(Authorization)가 필요한 리소스 설정
 
+스프링 시큐리티를 이용한 특정 리소스 (웹의 경우에는 특정한 URL)에 접근 제한을 하는 방식에는 크개 2가지 있음.
 
+> 1. 설정을 통해 패턴 지정
+> 2. 어노테이션을 이용해 적용
+
+<br/>
+
+#### 📋 SecurityConfig
+
+```java
+import lombok.extern.log4j.Log4j2;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+@Configuration
+@Log4j2
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Bean
+    PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Override
+    protected void configure(HttpSecurity httpSecurity) throws Exception {
+
+        httpSecurity.authorizeRequests()
+                .antMatchers("/sample/all").permitAll();
+
+    }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
+        // 사용자 계정은 user1
+        authenticationManagerBuilder.inMemoryAuthentication().withUser("user1")
+                .password("$2a$10$pvtnrZLWPHqGZ/7xF5FxEO29x.UgF6lV21L16NtVfxuUtQzMQG9Nu") // 1111 패스워드 인코딩 결과
+                .roles("USER");
+    }
+
+}
+```
+
+| 키워드                              | 설명                                 |
+|:---------------------------------|:-----------------------------------|
+| httpSecurity.authorizeRequests() | 인증이 필요한 자원들을 설정한다                  |
+| antMatchers()                    | '**/*'와 같은 엔트 스타일의 패턴으로 원하는 자원을 선택 |
+| permitAll()                      | 모든 사용자에게 접근 허락                     |
+
+> 따라서 '/sample/all' 는 로그인 없이도 접근 가능함
 
 
 
