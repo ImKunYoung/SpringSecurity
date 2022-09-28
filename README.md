@@ -349,9 +349,9 @@ AuthenticationManager 는 이러한 처리를 AuthenticationProvider 로 처리�
 <br/>
 <br/>
 
-### ✔ 스프링 시큐리티 커스터마이징
+## ⭐  스프링 시큐리티 커스터마이징
 
-#### 📋 PasswordEncoder
+### ✔ PasswordEncoder
 패스워드를 인코딩하는 객체 (암호화)임. 스프링 시큐리티는 여러 종류의 PasswordEncoder를 제공하고 있으며 그 중 가장 많이 사용하는 것은 BCryptPasswordEncoder라는 클래스이다.
 
 > - BCryptPasswordEncoder
@@ -432,6 +432,65 @@ matchResult: true
 enPW: $2a$10$pvtnrZLWPHqGZ/7xF5FxEO29x.UgF6lV21L16NtVfxuUtQzMQG9Nu
 matchResult: true
 ```
+
+<br/>
+<br/>
+
+### ✔ AuthenticationManager 설정
+암호화된 패스워드를 이용하기 위한 사용자가 필요함.
+이를 위해 AuthenticationManager의 설정을 쉽게 처리할 수 있도록 도와주는 Configure() 메서드 오버라이딩 처리
+
+<br/>
+
+#### 📋 SecurityConfig
+
+```java
+package com.example.springsecurity.config;
+
+import lombok.extern.log4j.Log4j2;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+@Configuration
+@Log4j2
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Bean
+    PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
+        // 사용자 계정은 user1
+        authenticationManagerBuilder.inMemoryAuthentication().withUser("user1")
+                .password("$2a$10$pvtnrZLWPHqGZ/7xF5FxEO29x.UgF6lV21L16NtVfxuUtQzMQG9Nu") // 1111 패스워드 인코딩 결과
+                .roles("USER");
+    }
+
+}
+```
+
+<br/>
+
+#### 📋 PasswordEncoder 테스트
+
+![](readmeFile/img_10.png)
+
+![](readmeFile/img_11.png)
+
+![](readmeFile/img_12.png)
+
+
+
+
+
+
+
 
 
 
