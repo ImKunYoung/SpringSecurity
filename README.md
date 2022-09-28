@@ -246,6 +246,91 @@ SampleController 에는 현재 사용자의 권한에 따라 접근할 수 있�
 
 ### 10.1.3 스프링 시큐리티 용어와 흐름
 
+프로젝트를 실행하고 '/sample/all' 과 같은 경로를 호출하면 시큐리티로 인해 로그인 화면이 보이는 것을 확인할 수 있음.
+이를 서버 로그를 중심으로 살펴보자
+
+로그인 세션이 없을 경우 'localhost:8080/sample/admin' 으로 접속하든 'localhost:8080/sample/all'으로 접속하든
+'localhost:8080/sample/member' 로 접속하든 'http://localhost:8080/login' 페이지가 호출되는 것을 확인할 수 있다.
+
+![](readmeFile/img_1.png)
+
+- '/sample/all' 등을 호출할 경우 내부적으로 여러 개의 필터 (filter)가 동작하는 것을 확인할 수 있음.
+![](readmeFile/img_2.png)
+
+<br/>
+
+- 스프링 시큐리티의 동작에는 여러 개의 객체가 서로 데이터를 주고 받으면서 이루어짐
+
+![](readmeFile/img_3.png)
+
+> 핵심 역할은 AuthenticationProvider (인증 매니저)를 통해서 이루어진다. AuthenticationProvider 는 인증 매니저가 어떻게 동작해야 하는지를 결정하고 최종적으로 실제 인증은 UserDetailService 에 의해서 이루어진다.
+
+스프링 시큐리티의 가장 핵심 개념은 인증 (Authentication)과 인가 (Authorization) 이다. 예를 들어 은행에 금고가 하나 있고, 사용자가 금고의 내용을 열어 본다고 가정해 보면 다음과 같은 과정을 거치게 된다.
+
+> 1. 사용자는 은행에 가서 자신이 어떤 사람인지 자신의 신분증으로 증명한다.
+> 2. 은행에서는 사용자의 신분을 확인한다.
+> 3. 은행에서 사용자가 금고를 열어볼 수 있는 사람인지를 판단한다.
+> 4. 만일 적절한 관리나 권한이 있는 사용자의 경우 금고를 열어준다.
+
+위의 과정에서 1은 인증에 해당하는 작업으로 자신을 '증명'하는 것이다. 3에서는 사용자를 '인가'하는 일종의 허가를 해 주는 과정으로 스프링 시큐리티 역시 내부적으로 위와 유사한 과정을 거쳐서 동작한다.
+
+<br/>
+
+- 필터와 필터 체이닝
+
+스프링 시큐리티에서 필터 (Filter)는 서블릿이나 JSP 에서 사용하는 필터와 같은 개념이지만, 스프링 시큐리티에서는 스프링의 빈과 연동할 수 있는 구조로 설계되어 있다.
+일반적인 필터는 스프링의 빈을 사용할 수 없기 때문에 별도의 클래스를 상속받는 형태가 많다.
+
+스프링 시큐리티의 내부에는 여러 개의 필터가 Filter Chain 이라는 구조로 Request 를 처리하게 된다. 앞에서 실행되었던 로그를 살펴보면 15개 정도의 필터가 동작하는 것을 확인할 수 있다.
+개발 시에 필터를 확장하고 설정하면 스프링 시큐리티를 이용해서 다양한 형태의 로그인 처리가 가능하게 된다. 아래는 스프링 시큐리티 내부에 사용되는 주요 필터이다.
+
+![](readmeFile/img_4.png)
+
+
+<br/>
+
+- 인증을 위한 AuthenticationManager
+
+필터의 핵심적인 동작은 AuthenticationManager 를 통해서 인증 (Authentication) 이라는 타입의 객체로 작업을 하게 된다.
+AuthenticationManager가 가진 인증 처리 메서드는 파라미터도 Authentication 타입으로 받고 리턴 타입 또한 Authentication 이다.
+
+인증 (Authentication) 는 '주민등록증' 과 비슷한 개념으로 생각하면 된다. '인증' 이라는 용어는 '스스로 증명하다' 라는 의미이다. 예를 들어 로그인하는 과정에서는 사용자의 아이디/패스워드로 자신이 어떤 사람인지를 전달한다.
+전달된 아이디/패스워드로 실제 사용자에 대해서 검증하는 행위는 AuthenticationManager (인증 매니저)를 통해서 이루어진다.
+
+실제 동작에서 전달되는 파라미터는 UsernamePasswordAuthenticationToken 과 같이 토큰이라는 이름으로 전달된다. 즉, 스프링 시큐리티 필터의 주요 역할이 인증 관련된 정보를 토큰이라는 객체로 만들어 전달한다는 의미이다.
+아래는 기본으로 제공되는 필터 중 UsernamePasswordAuthenticationFilter 클래스 코드 중 일부이다.
+
+```
+String username = obtainUsername(request);
+username = (username != null) ? username : "";
+username = username.trim();
+String password = obtainPassword(request);
+password = (password ! = null) ? password : "";
+UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(username, password);
+// Allow subckasses to set the "details" property
+setDetails(request, authRequest);
+return this.getAuthenticationManager().authenticate(authRequest);
+```
+
+request 를 이용해서 사용자의 아이디와 패스워드를 받아서 UsernamePasswordAuthenticationToken 이라는 객체를 만들고 
+이를 AuthenticationManager 의 authenticate() 에 파라미터로 전달하는 것을 확인할 수 있음.
+AuthenticationManager 는 이러한 처리를 AuthenticationProvider 로 처리한다.
+
+![](readmeFile/img_6.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
