@@ -822,26 +822,150 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 
 
+<br/>
+<br/>
+<br/>
+
+### ✔ 프로젝트를 위한 JPA 처리
+
+최근엔 아이디 대신 이메일을 아이디로 구성해서 회원 (ClubMember) 처리를 하는 경우가 많음. 회원 정보 구성은 다음과 같다.
+
+> ##### 회원 (ClubMember)
+> - 이메일(ID)
+> - 패스워드
+> - 이름 (닉네임)
+> - 소셜 가입 여부 (OAuth로 회원 가입된 경우)
+> - 기타 (등록일/수정일)
+
+회원의 권한은 아래와 같이 두었다.
+
+> ##### 권한 (ClubMemberRole)
+> - USER: 일반 회원
+> - MANAGER: 중간 관리 회원
+> - ADMIN: 총괄 관리자
+
+한 명의 클럽 회원은 여러 개의 권한을 가질 수 있다.
+
+> ClubMember와 ClubMemberRole은 1:N 관계이나, 사실상 ClubMemberRole 자체는 핵심적인 역할을 하지 않기 때문에 별도의 엔티티 생성이 아닌 @ElementCollection 을 이용해 PK 없이 구성할 것임.
+
+
+<br/>
+
+#### 📋 BaseEntity
+
+```java
+package com.example.springsecurity.entity;
+
+import lombok.Getter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import javax.persistence.Column;
+import javax.persistence.EntityListeners;
+import javax.persistence.MappedSuperclass;
+import java.time.LocalDateTime;
+
+@MappedSuperclass /*해당 어노테이션이 적용된 클래스는 테이블로 생성되지 않고 이 클래스를 상속받은 엔티티 클래스로 데이터베이스 테이블이 생성됨*/
+@EntityListeners(value = {AuditingEntityListener.class}) /*엔티티 객체가 생성/변경되는 것을 감지 - AuditingEntityListener*/
+@Getter
+public class BaseEntity {
+
+    @CreatedDate /*엔티티 생성 시간 처리*/
+    @Column(name = "regdate", updatable = false)
+    private LocalDateTime regDate;
+
+    @LastModifiedDate /*최종 수정 시간 처리*/
+    @Column(name = "moddate")
+    private LocalDateTime modDate;
+
+}
+```
 
 
 
+<br/>
+
+#### 📋 SpringSecurityApplication
+
+```java
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+
+@SpringBootApplication
+@EnableJpaAuditing
+public class SpringSecurityApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(SpringSecurityApplication.class, args);
+    }
+}
+```
 
 
 
+<br/>
+
+#### 📋 ClubMemberRole
+
+```java
+package com.example.springsecurity.entity;
+
+public enum ClubMemberRole {
+    USER, MANAGER, ADMIN
+}
+```
 
 
+<br/>
+
+#### 📋 ClubMember
+
+```java
+package com.example.springsecurity.entity;
+
+import lombok.*;
+
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import java.util.HashSet;
+import java.util.Set;
+
+@Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@ToString
+public class ClubMember {
+
+    @Id
+    private String email;
+
+    private String password;
+
+    private String name;
+
+    private boolean fromSocial;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<ClubMemberRole> roleSet = new HashSet<>();
+    public void addMemberRole(ClubMemberRole clubMemberRole) {
+        roleSet.add(clubMemberRole);
+    }
+
+}
+```
 
 
+![](readmeFile/img_16.png)
 
+![](readmeFile/img_17.png)
 
-
-
-
-
-
-
-
-
+![](readmeFile/img_18.png)
 
 
 
