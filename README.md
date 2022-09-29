@@ -1184,8 +1184,20 @@ ClubMember(email=user95@outlook.com, password=$2a$10$toaBcYTzSfXApxTPNtqFU.F2WFo
 ```
 
 
+<br/>
+<br/>
+<br/>
 
+### ✔ 시큐리티를 위한 UserDetailService
 
+> 스프링 시큐리티가 ClubMemberRepository를 이용해서 회원 처리하는 부분 제작
+
+기존의 로그인 처리 개발 방식 (회원 ID와 패스워드를 DB에서 조회하고, 올바른 데이터가 있따면 세션이나 쿠키로 처리)과 달리 스프링 시큐리티는 다음 방식으로 동작한다.
+
+##### 🌴 스프링 시큐리티에션 회원이나 계정에 대해 User라는 용어를 사용. 따라서 User라는 단어 사용을 주의하자 (앞에서도 ClubMember라는 단어를 사용함)
+##### 🌴 회원 ID 라는 용어 대신 username이라는 단어 사용. 스프링 시큐리티에선 username 단어 자체가 회원을 구별할 수 있는 식별 데이터를 의미함. 문자열로 처리하는 점은 같으나 일반적으로 사용하는 회원의 이름이 아닌 id에 해당함.
+##### 🌴 username과 password를 동시에 사용하지 않는다. 스프링 시큐리티는 UserDetailService를 이용해 회원의 존재만을 우선적으로 가져오고 이후 password가 틀리면 'Bad Cridential (잘못된 자격증명)'이라는 결과를 만들어 냄 (인증)
+##### 🌴 사용자의 username과 password로 인증 과정이 끝나면 원하는 자원 (URL)에 접근할 수 있는 적절한 권한이 있는지 확인하고 인가 과정을 실행함. 이 과정에선 'Access Denied'와 같은 결과가 만들어짐
 
 
 
