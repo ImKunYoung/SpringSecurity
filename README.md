@@ -1199,15 +1199,67 @@ ClubMember(email=user95@outlook.com, password=$2a$10$toaBcYTzSfXApxTPNtqFU.F2WFo
 ##### 🌴 username과 password를 동시에 사용하지 않는다. 스프링 시큐리티는 UserDetailService를 이용해 회원의 존재만을 우선적으로 가져오고 이후 password가 틀리면 'Bad Cridential (잘못된 자격증명)'이라는 결과를 만들어 냄 (인증)
 ##### 🌴 사용자의 username과 password로 인증 과정이 끝나면 원하는 자원 (URL)에 접근할 수 있는 적절한 권한이 있는지 확인하고 인가 과정을 실행함. 이 과정에선 'Access Denied'와 같은 결과가 만들어짐
 
+![](readmeFile/img_21.png)
+<br/>
+<br/>
+<br/>
+
+### ✔ UserDetails 인터페이스
+loadUserName()은 username를 식별 값으로 회원 정보 (UserDetails)를 가지고 오는데 이를 통해 다음 정보를 알 수 있음
+
+| 키워드              | 설명                           |
+|:-----------------|:-----------------------------|
+| getAuthorities() | 사용자가 가지는 권한에 대한 정보           |
+| getPassword()    | 인증을 마무리하기 위한 패스워드 정보         |
+| getUsername()    | 인증에 필요한 아이디와 같은 정보           |
+| 계정 만료 여부         | 더 이상 사용이 불가능한 계정인지 알 수 있는 정보 |
+| 계정 잠김 여부         | 현재 계정의 잠김 여부                 |
 
 
+이를 위해 ClubMember를 다음과 같이 처리할 수 있음
+> - 기존 DTO 클래스에 UserDetails 인터페이스를 구현하는 방법
+> - DTO와 같은 개념으로 별도의 클래스를 구성하고 이를 활용하는 방법
 
 
+<br/>
 
+#### 📋 ClubAuthMemberDTO
 
+```java
+package com.example.springsecurity.security.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 
+import java.util.Collection;
 
+@Log4j2
+@Getter
+@Setter
+@ToString
+public class ClubAuthMemberDTO extends User {
+
+    private String email;
+
+    private String name;
+
+    private boolean fromSocial;
+
+    public ClubAuthMemberDTO(String username, String password, boolean fromSocial, Collection<? extends GrantedAuthority> authorities) {
+        super(username, password, authorities);
+        this.email = username;
+        this.fromSocial = fromSocial;
+    }
+
+}
+
+```
+
+> ClubAuthMemberDTO는 DTO 역할을 수행하는 클래스인 동시에 스프링 시큐리티에서 인가/인증 작업에 사용할 수 있다. password는 부모 클래스를 사용하므로 별도의 멤버 변수로 선언하지 않는다.
 
 
 
