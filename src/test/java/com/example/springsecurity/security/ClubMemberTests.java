@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 @SpringBootTest
@@ -18,6 +19,7 @@ public class ClubMemberTests {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
 
     @Test
     public void insertDummies() {
@@ -44,6 +46,18 @@ public class ClubMemberTests {
             repository.save(clubMember);
 
         });
+
+    }
+
+
+    @Test
+    public void testRead() {
+
+        Optional<ClubMember> result = repository.findByEmail("user95@outlook.com", false);
+
+        ClubMember clubMember = result.get();
+
+        System.out.println(clubMember);
 
     }
 

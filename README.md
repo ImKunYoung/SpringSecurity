@@ -1067,24 +1067,121 @@ public class ClubMemberTests {
 <br/>
 <br/>
 
+### ✔ 회원 데이터 조회 테스트
+
+> ClubMember의 조회 시엔 이메일을 기준으로 조회하고, 일반 로그인 사용자와 뒤에 추가되는 소셜 로그인 사용자를 구분하기 위해 ClubMemberRepository에 별도의 메서드로 처리
+
+<br/>
+
+#### 📋 ClubMemberRepository
+
+```java
+package com.example.springsecurity.repository;
+
+import com.example.springsecurity.entity.ClubMember;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.Optional;
+
+public interface ClubMemberRepository extends JpaRepository<ClubMember, String> {
+
+    @EntityGraph(attributePaths = {"roleSet"}, type = EntityGraph.EntityGraphType.LOAD)
+    @Query("select clubmember from ClubMember clubmember where clubmember.fromSocial = :social and clubmember.email =:email")
+    Optional<ClubMember> findByEmail(@Param("email") String email, @Param("social") boolean social);
+
+}
+```
+
+| 키워드 | 설명                      |
+|:----|:------------------------|
+|@EntityGraph| Lazy 로딩 사용할 때 한번에 패치할 때 |
+|||
+
+<br/>
+
+#### 📋 ClubMemberTests
+
+```java
+package com.example.springsecurity.security;
+
+import com.example.springsecurity.entity.ClubMember;
+import com.example.springsecurity.entity.ClubMemberRole;
+import com.example.springsecurity.repository.ClubMemberRepository;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Optional;
+import java.util.stream.IntStream;
+
+@SpringBootTest
+public class ClubMemberTests {
+
+    @Autowired
+    private ClubMemberRepository repository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+
+    @Test
+    public void insertDummies() {
+
+        // 1 - 80 : USER
+        // 81 - 90: USER, MANAGER
+        // 91 - 100: USER, MANAGER, ADMIN
+
+        IntStream.rangeClosed(1,100).forEach(i -> {
+            ClubMember clubMember = ClubMember.builder()
+                    .email("user"+i+"@outlook.com")
+                    .name("사용자"+i)
+                    .fromSocial(false)
+                    .password(passwordEncoder.encode("1111"))
+                    .build();
+
+            // default role
+            clubMember.addMemberRole(ClubMemberRole.USER);
+
+            if(i > 80) clubMember.addMemberRole(ClubMemberRole.MANAGER);
+
+            if(i > 90) clubMember.addMemberRole(ClubMemberRole.ADMIN);
+
+            repository.save(clubMember);
+
+        });
+
+    }
+
+
+    @Test
+    public void testRead() {
+
+        Optional<ClubMember> result = repository.findByEmail("user95@outlook.com", false);
+
+        ClubMember clubMember = result.get();
+
+        System.out.println(clubMember);
+
+    }
+
+
+}
+
+```
 
 
 
+<br/>
 
+#### 📋 결과
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
+ClubMember(email=user95@outlook.com, password=$2a$10$toaBcYTzSfXApxTPNtqFU.F2WFocOBl0qSpGwouektXBwJI2GVH4O, name=사용자95, fromSocial=false, roleSet=[MANAGER, USER, ADMIN])
+```
 
 
 
