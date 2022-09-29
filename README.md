@@ -485,7 +485,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 ![](readmeFile/img_12.png)
 
-
+<br/>
 <br/>
 <br/>
 
@@ -611,6 +611,177 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 #### 📋 결과
 
 ![](readmeFile/img_14.png)
+
+
+<br/>
+<br/>
+<br/>
+
+### ✔ CSRF 설정 (Cross Site Request Forgery, 크로스 사이트 요청 위조)
+
+CRSF란 서버에서 받아들이는 정보가 특별한 사전 조건을 검증하지 않는다는 점을 이용한 공격 방식이다. 
+CSRF을 통해 단순 게시물의 조회수를 늘리는 등의 조작부터, 피해자의 계정을 이용한 다양한 공격이 가능하다.
+
+예를 들어 A 사이트에는 특정 사용자 등급을 변경하는 URI가 존재하는 것을 공격자가 알았고 해당 URI에 약간의 파라미터가 필요하다는 것을 알았다고 가정하자.
+
+> www.aaa.xxx?update? grade=admin&account=123
+
+공격자는 A 사이트 관리자가 자주 방문하는 B사이트에 <img> 태그나 <form>를 이용하여 위의 URI를 추가한 게시물을 작성한다.
+
+```html
+<form action="www.aaa.xxx?update? grade=admin&account=123">
+    <input type="submit" value="축 이벤트 당첨">
+</form>
+
+<!--or-->
+
+<img scr="www.aaa.xxx?update? grade=admin&account=123">
+```
+
+A 사이트 관리자는 A사이트에 로그인된 상태로 자신이 평상시 방문하던 B 사이트를 방문하게 되고 공격자가 작성한 게시물을 보게되면 `<img>` 태그 등에 사용된 URI가 호출되고 서버에는 로그인한 관리자의 요청에 의해 공격자는 admin 등급의 사용자로 변경됨.
+이러한 문제는 서버에서 받아들이는 요청을 해석하고 처리할 때 어떤 출처에서 호출이 진행되었는지 따지지 않기 때문에 생기며, 하나의 사이트 내에서도 가능함.
+
+![](readmeFile/img_15.png)
+
+<br/>
+
+
+#### 📋 현재 login form
+
+```html
+<html lang="en"><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Please sign in</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" crossorigin="anonymous">
+  </head>
+  <body>
+     <div class="container">
+      <form class="form-signin" method="post" action="/login">
+        <h2 class="form-signin-heading">Please sign in</h2>
+        <p>
+          <label for="username" class="sr-only">Username</label>
+          <input type="text" id="username" name="username" class="form-control" placeholder="Username" required="" autofocus="">
+        </p>
+        <p>
+          <label for="password" class="sr-only">Password</label>
+          <input type="password" id="password" name="password" class="form-control" placeholder="Password" required="">
+        </p>
+        <input name="_csrf" type="hidden" value="6df225a0-163b-4e5f-8bb9-a6421bdd9e27">
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+      </form>
+</div>
+</body></html>
+```
+
+현재 자동으로 만들어진 로그인 페이지에선 CSRF 토큰값이 발행된 것을 확인할 수 있음.
+CSRF 토큰은 세션당 하나 생성된다.
+
+일반적인 세션을 이용하고, `<form>` 태그를 이용하는 방식에는 CSRF 토큰이 보안상으로 권장되나, REST 방식 등에선 매번 CSRF 토큰 값을 알아내야 하는 불편함이 있기 때문에 경우에 따라서 CSRF 토큰의 발행을 하지 않는 경우도 있음.
+
+
+<br/>
+<br/>
+
+### ✔ CSRF 토큰 비활성화
+
+#### 📋 SecurityConfig
+
+```java
+import lombok.extern.log4j.Log4j2;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+@Configuration
+@Log4j2
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Bean
+    PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+
+    @Override
+    protected void configure(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity.authorizeRequests()
+                .antMatchers("/sample/all").permitAll()
+                .antMatchers("/sample/member").hasRole("USER");
+
+        httpSecurity.formLogin(); // 인가, 인증에 문제시 로그인 화면으로
+        httpSecurity.csrf().disable();
+    }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
+        // 사용자 계정은 user1
+        authenticationManagerBuilder.inMemoryAuthentication().withUser("user1")
+                .password("$2a$10$pvtnrZLWPHqGZ/7xF5FxEO29x.UgF6lV21L16NtVfxuUtQzMQG9Nu") // 1111 패스워드 인코딩 결과
+                .roles("USER");
+    }
+
+}
+```
+
+|키워드|설명|
+|:---|:---|
+|httpSecurity.csrf().disable()|CSRF 토큰 비활성화|
+
+
+<br/>
+
+#### 📋 결과
+
+```html
+<html lang="en"><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Please sign in</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" crossorigin="anonymous">
+  </head>
+  <body>
+     <div class="container">
+      <form class="form-signin" method="post" action="/login">
+        <h2 class="form-signin-heading">Please sign in</h2>
+        <p>
+          <label for="username" class="sr-only">Username</label>
+          <input type="text" id="username" name="username" class="form-control" placeholder="Username" required="" autofocus="">
+        </p>
+        <p>
+          <label for="password" class="sr-only">Password</label>
+          <input type="password" id="password" name="password" class="form-control" placeholder="Password" required="">
+        </p>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+      </form>
+</div>
+</body></html>
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
