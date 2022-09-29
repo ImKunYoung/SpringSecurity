@@ -27,6 +27,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         httpSecurity.formLogin(); // 인가, 인증에 문제시 로그인 화면으로
         httpSecurity.csrf().disable();
+        httpSecurity.logout();
     }
 
     @Override
