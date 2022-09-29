@@ -21,8 +21,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
-        /*TODO-ISSUE 모든 URL에서 Security 풀림*/
-        httpSecurity.authorizeRequests().antMatchers("/sample/admin").denyAll();
+        httpSecurity.authorizeRequests()
+                .antMatchers("/sample/all").permitAll()
+                .antMatchers("/sample/member").hasRole("USER");
+
+        httpSecurity.formLogin(); // 인가, 인증에 문제시 로그인 화면으로
     }
 
     @Override
